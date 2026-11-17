@@ -22,6 +22,9 @@ const props = defineProps<{
 declare global {
   interface Window {
     AMap?: any;
+    _AMapSecurityConfig?: {
+      securityJsCode: string;
+    };
   }
 }
 
@@ -32,6 +35,7 @@ const routeLine = ref<any>(null);
 const loadError = ref("");
 
 const amapKey = import.meta.env.VITE_AMAP_JS_KEY;
+const amapSecurityCode = import.meta.env.VITE_AMAP_SECURITY_CODE;
 
 const validPoints = computed(() =>
   props.points.filter(
@@ -200,6 +204,9 @@ function ensureMapScript(): Promise<void> {
     }
 
     const script = document.createElement("script");
+    window._AMapSecurityConfig = {
+      securityJsCode: amapSecurityCode,
+    };
     script.src = `https://webapi.amap.com/maps?v=2.0&key=${amapKey}`;
     script.async = true;
     script.defer = true;
@@ -213,6 +220,11 @@ function ensureMapScript(): Promise<void> {
 async function initMap() {
   if (!amapKey) {
     loadError.value = "未配置前端高德 JavaScript Key。";
+    return;
+  }
+
+  if (!amapSecurityCode) {
+    loadError.value = "未配置高德 JavaScript API 安全密钥。";
     return;
   }
 
